@@ -1,0 +1,11 @@
+{
+    "name": "cb8/phpunit-vsts-bridge",
+    "description": "Publish test results from PHPUnit to VSTS",
+    "keywords": ["phpunit", "vsts", "test", "testcase", "junit", "unit-test"],
+    "homepage": "https://github.com/cb8/phpunit-vsts-bridge",
+    "license": "MIT",
+    "bin": ["phpunit-vsts-bridge"],
+    "require": {
+        "ext-xml": "*"
+    }
+}
