@@ -1,6 +1,10 @@
 PHPUnit VSTS Bridge
 ===================
 
+[![Travis](https://img.shields.io/travis/cb8/phpunit-vsts-bridge/master.svg)](https://travis-ci.org/cb8/phpunit-vsts-bridge)
+[![Packagist](https://img.shields.io/packagist/v/cb8/phpunit-vsts-bridge.svg)](https://packagist.org/packages/cb8/phpunit-vsts-bridge)
+[![License](https://img.shields.io/github/license/cb8/phpunit-vsts-bridge.svg)](./LICENSE)
+
 Publish your test results from PHPUnit to VSTS!
 
 Usage
