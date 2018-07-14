@@ -1,0 +1,20 @@
+language: php
+
+sudo: yes
+
+php:
+  - '5.6'
+  - '7.0'
+  - '7.2'
+
+install:
+  - sudo apt update -q
+  - sudo apt install -qyy libxml2-utils
+  - composer install
+  - composer install -d tests
+  - wget -q -O schema.xsd "https://raw.githubusercontent.com/windyroad/JUnit-Schema/master/JUnit.xsd"
+
+script:
+  - ./tests/vendor/bin/phpunit --log-junit=test.xml tests/tests || true
+  - ./phpunit-vsts-bridge test.xml > test-vsts.xml
+  - xmllint --schema schema.xsd test-vsts.xml
