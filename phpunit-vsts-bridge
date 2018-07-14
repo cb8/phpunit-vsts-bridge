@@ -1,0 +1,78 @@
+#!/usr/bin/env php
+<?php
+
+if (!isset($argv[1]) || !is_readable($argv[1])) {
+    fprintf(STDERR, "Usage: %s results.xml\n", $argv[0]);
+    exit(1);
+}
+
+$in = simplexml_load_file($argv[1]);
+
+$doc = new DOMDocument();
+$doc->formatOutput = true;
+$root = $doc->createElement('testsuites');
+
+$hostname = gethostname();
+$timestamp = date('Y-m-d\TH:i:s');
+$id = 0;
+foreach ($in->testsuite[0] as $suite) {
+    $suiteOut = $doc->createElement('testsuite');
+    $suiteOut->setAttribute('id', $id);
+    $suiteOut->setAttribute('package', substr($suite['name'], 0, strrpos($suite['name'], '\\')));
+    $suiteOut->setAttribute('name', $suite['name']);
+    $suiteOut->setAttribute('hostname', $hostname);
+    $suiteOut->setAttribute('timestamp', $timestamp);
+    $suiteOut->setAttribute('time', '0');
+    $suiteOut->setAttribute('tests', '0');
+    $suiteOut->setAttribute('failures', '0');
+    $suiteOut->setAttribute('errors', '0');
+
+    $suiteOut->appendChild($doc->createElement('properties'));
+
+    $cases = [];
+    foreach ($suite->testcase as $case) {
+        $cases[] = [$case, $case['class'], $case['name']];
+    }
+    foreach ($suite->testsuite as $grouped) {
+        $i = 0;
+        foreach ($grouped->testcase as $case) {
+            $name = explode('::', $grouped['name']);
+            $cases[] = [$case, $name[0], sprintf('%s[%d]', $name[1], $i++)];
+        }
+    }
+    foreach ($cases as $row) {
+        list($case, $class, $method) = $row;
+        if ($basePos = strrpos($class, '\\')) {
+            $classBase = substr($class, $basePos + 1);
+        } else {
+            $classBase = $class;
+        }
+
+        $caseOut = $doc->createElement('testcase');
+        $caseOut->setAttribute('classname', $class);
+        $caseOut->setAttribute('name', sprintf('%s::%s', $classBase, $method));
+        $caseOut->setAttribute('time', $case['time']);
+        if ($failure = $case->failure) {
+            $failureOut = $doc->createElement('failure');
+            $failureOut->setAttribute('type', $failure['type']);
+            $failureOut->appendChild($doc->createTextNode((string) $failure));
+            $caseOut->appendChild($failureOut);
+        }
+        if ($error = $case->error) {
+            $errorOut = $doc->createElement('error');
+            $errorOut->setAttribute('type', $error['type']);
+            $errorOut->appendChild($doc->createTextNode((string) $error));
+            $caseOut->appendChild($errorOut);
+        }
+        $suiteOut->appendChild($caseOut);
+    }
+
+    $suiteOut->appendChild($doc->createElement('system-out'));
+    $suiteOut->appendChild($doc->createElement('system-err'));
+
+    $root->appendChild($suiteOut);
+    $id++;
+}
+
+$doc->appendChild($root);
+echo $doc->saveXML();
